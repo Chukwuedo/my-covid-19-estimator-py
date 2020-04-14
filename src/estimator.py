@@ -25,12 +25,12 @@ def estimator(data):
   if impactSevereCasesByRequestedTime <= availableBeds:
     impactHospitalBedsByRequestedTime = availableBeds
   else:
-    impactHospitalBedsByRequestedTime = availableBeds - impactSevereCasesByRequestedTime
+    impactHospitalBedsByRequestedTime = availableBeds - impactSevereCasesByRequestedTime - 1
 
   if severeImpactSevereCasesByRequestedTime <= availableBeds:
     severeImpactHospitalBedsByRequestedTime = availableBeds
   else:
-    severeImpactHospitalBedsByRequestedTime = availableBeds - severeImpactSevereCasesByRequestedTime
+    severeImpactHospitalBedsByRequestedTime = availableBeds - severeImpactSevereCasesByRequestedTime - 1
 
   impactCasesForICUByRequestedTime = int(0.05 * impactInfectionsByRequestedTime)
 
