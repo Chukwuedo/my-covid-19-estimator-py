@@ -1,4 +1,17 @@
-def estimator(data):
+from django.shortcuts import render
+
+from django.http import JsonResponse
+from rest_framework.decorators import api_view
+from rest_framework import status
+from rest_framework.response import Response
+from .models import data, region, impact, severeImpact
+from .serializers import dataSerializer, impactSerializer, severeImpactSerializer
+import json
+from django.core.exceptions import ObjectDoesNotExist
+
+
+
+def estimator(request):
 
   '''
   
@@ -98,3 +111,55 @@ def estimator(data):
   estimate = {'data': data, 'impact': impact, 'severeImpact': severeImpact}
   
   return estimate
+
+
+
+
+
+@api_view(['GET'])
+def welcome(request):
+    content = {'message': 'Welcome to the #BuildSDG Assessment Backend for Chukwudum Chukwuedo'}
+    return JsonResponse(content)
+
+@api_view(['POST'])
+def processInput(request):
+    payload = json.loads(request.data)
+    try:
+        #data = data.objects.get(id = payload['data'])
+        region = region.objects.get(id = payload['region'])
+        output = estimator(payload)
+        impact = impact.objects.create(
+            infectionByRequestedTime = output['impact']['infectionByRequestedTime']
+            , severeCasesByRequestedTime = output['impact']['severeCasesByRequestedTime']
+            , hospitalBedsByRequestedTime = output['impact']['hospitalBedsByRequestedTime']
+            , casesForICUByRequestedTime = output['impact']['casesForICUByRequestedTime']
+            , casesForVentilatorsByRequestedTime = output['impact']['casesForVentilatorsByRequestedTime']
+            , dollarsInFlight = output['impact']['dollarsInFlight']
+            )
+        severeImpact = severeImpact.objects.create(
+            infectionByRequestedTime = output['severeImpact']['infectionByRequestedTime']
+            , severeCasesByRequestedTime = output['severeImpact']['severeCasesByRequestedTime']
+            , hospitalBedsByRequestedTime = output['severeImpact']['hospitalBedsByRequestedTime']
+            , casesForICUByRequestedTime = output['severeImpact']['casesForICUByRequestedTime']
+            , casesForVentilatorsByRequestedTime = output['severeImpact']['casesForVentilatorsByRequestedTime']
+            , dollarsInFlight = output['severeImpact']['dollarsInFlight']
+            )
+
+        serializerData = dataSerializer(payload); serializerImpact = impactSerializer(impact); serializerSevereImpact = severeImpactSerializer(severeImpact);
+        return JsonResponse({'data': serializerData.data, 'impact': serializerImpact.data, 'severeImpact': serializerSevereImpact.data},
+        safe = False, status = status.HTTP_201_CREATED)
+
+    except ObjectDoesNotExist as e:
+        return JsonResponse({'error': str(e)}, safe = False, status = status.HTTP_404_NOT_FOUND)
+
+    except Exception:
+        return JsonResponse({'error': 'Something terrible went wrong'}, safe = False, status = status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+
+
+
+
+
+
+
